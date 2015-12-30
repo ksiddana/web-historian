@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -12,7 +11,9 @@ var _ = require('underscore');
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
-  list: path.join(__dirname, '../archives/sites.txt')
+  list: path.join(__dirname, '../archives/sites.txt'),
+  index: path.join(__dirname, '../web/public/index.html'),
+  test: path.join(__dirname, '../test/testdata/sites.txt')
 };
 
 // Used for stubbing paths for tests, do not modify
@@ -25,7 +26,26 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
+exports.readListOfUrls = function(callback){
+  console.log('reading list of URLS');
+  var readStream = fs.createReadStream(exports.paths.test)
+
+  readStream.on('error', function(err) {
+    console.log('error reading sites.txt file ');
+  });
+
+  var completeData = '';
+
+  readStream.on('data', function (data) {
+    console.log('got some data',data);
+    completeData += data;
+  });
+
+  readStream.on('end',function(){
+    console.log('all data', JSON.parse(compeleteData));
+    callback(JSON.parse(compeleteData).split('\n'));
+  })
+  
 };
 
 exports.isUrlInList = function(){

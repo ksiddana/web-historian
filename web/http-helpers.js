@@ -10,14 +10,52 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.serveAssets = function(res, asset, callback) {
+// As you progress, keep thinking about what helper functions you can put here!
+exports.sendResponse = function(response, data, statusCode){
+
+  response.writeHead(statusCode,headers);
+  response.end(JSON.stringify(data));
+
+}
+
+exports.serveAssets = function(response, asset, callback) {
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
+  
+
+  console.log('serving assets');
+
+  response.writeHead(200,headers);
+  var readStream = fs.createReadStream(asset)
+
+  readStream.on('error', function(err) {
+    console.log('error serving file ' + asset);
+    exports.sendResponse(response,err,404);
+  });
+
+  readStream.on('open', function () {
+    console.log('serving file!');
+    readStream.pipe(response);
+  });
+  
 };
 
+exports.saveAssets = function(response, asset, callback) {
+  console.log("Saving Asssest:", JSON.stringify(asset) + "\n", "to: ", archive.paths.archiveList);
+  fs.appendFile(archive.paths.test, asset.url + "\n", function (err) {
+
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('The "data to append" was appended to file!');
+    }
+  });
+
+}
+
+
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
 
-// As you progress, keep thinking about what helper functions you can put here!

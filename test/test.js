@@ -61,6 +61,7 @@ describe("server", function() {
           .expect(302, function (err) {
             if (!err) {
               var fileContents = fs.readFileSync(archive.paths.list, 'utf8');
+              console.log("-----------------", fileContents, archive.paths.list);
               expect(fileContents).to.equal(url + "\n");
             }
 
@@ -76,8 +77,9 @@ describe("archive helpers", function(){
     it("should read urls from sites.txt", function (done){
       var urlArray = ["example1.com", "example2.com"];
       fs.writeFileSync(archive.paths.list, urlArray.join("\n"));
-
+      console.log('reading URLS');
       archive.readListOfUrls(function(urls){
+        console.log('urls are', urls)
         expect(urls).to.deep.equal(urlArray);
         done();
       });
