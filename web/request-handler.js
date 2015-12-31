@@ -17,10 +17,18 @@ exports.handleRequest = function (request, response) {
   else if ( request.url === '/' && request.method === 'POST') {
     console.log("Recieving POST Request");
     var completeData = '';
+    
     request.on('data', function(data) {
       console.log("Reciving Data:", data);
       completeData += data;
     });
+
+
+    archive.isUrlArchived(request.url, function(fileExists) {
+      if (fileExists) {
+        // archive.TO DO://
+      }
+    })
 
     request.on('end', function() {
       http.saveAssets(request, JSON.parse(completeData));
