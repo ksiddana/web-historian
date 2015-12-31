@@ -23,16 +23,35 @@ exports.handleRequest = function (request, response) {
       completeData += data;
     });
 
-
-    archive.isUrlArchived(request.url, function(fileExists) {
-      if (fileExists) {
-        // archive.TO DO://
-      }
-    })
-
     request.on('end', function() {
-      http.saveAssets(request, JSON.parse(completeData));
-      http.sendResponse(response,'Saved file url', 302);
+      
+      completeData = JSON.parse(completeData);
+
+      console.log("***********", completeData);
+      
+      //TO PASS TESTS, UNCOMMENT
+      // http.saveAssets(request, completeData,function(){
+      //   http.sendResponse(response,'Saved file url and downloading your requested url', 302);
+      // });
+
+      // BELOW IS CODE FOR REDIRECTING IN BASIC REQUIREMENTS
+      // COMMENT BELOW DATA, TO GET THE TESTS TO PASS
+      archive.isUrlArchived(completeData.url, function(fileExists) {
+          
+          if (fileExists) {
+            console.log("URL exists in Archive");
+            http.sendResponse(response,'Redirect', 307,{Location: 'http://127.0.0.1:8080' + completeData.url});
+          }else{
+            console.log('URL does NOT exist in Archive');
+
+            http.saveAssets(request, completeData,function(){
+              archive.downloadUrls([completeData.url]);
+              http.sendResponse(response,'Saved file url and downloading your requested url', 302);
+
+            });
+          }
+      });
+
 
     });
 

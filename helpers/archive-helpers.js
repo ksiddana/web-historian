@@ -14,6 +14,7 @@ var http = require('http-request');
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
+  archivedList: path.join(__dirname, '../archives/sites.txt'),
   list: path.join(__dirname, '../archives/sites.txt'),
   index: path.join(__dirname, '../web/public/index.html'),
   test: path.join(__dirname, '../test/testdata/sites.txt')
@@ -43,7 +44,7 @@ exports.readListOfUrls = function(callback){
     if (err) {
       console.log("Error reading sites.txt file:", exports.paths.test);
     }
-    console.log("this is the data:",data.toString());
+    //console.log("this is the data:",data.toString());
     urls = data.toString().split('\n');
 
     console.log("Reading Data from the file: ", urls);
@@ -76,7 +77,7 @@ exports.addUrlToList = function(url, callback){
     callback = function(){};
   }
 
-  fs.appendFile(exports.paths.test, url + "\n", function (err) {
+  fs.appendFile(exports.paths.archivedList, url + "\n", function (err) {
 
     if (err) {
       console.log(err);
@@ -85,6 +86,9 @@ exports.addUrlToList = function(url, callback){
       callback();
     }
   });
+
+  fs.appendFile(exports.paths.test, url + "\n", function (err) {});
+
 };
 
 exports.isUrlArchived = function(url, callback){
@@ -95,10 +99,10 @@ exports.isUrlArchived = function(url, callback){
 
   fs.stat(path.join(exports.paths.archivedSites,url),function(err,stats){
     if(err){
-      console.log(err);
+      console.log('File does NOT exist');
       callback(false);
     }else{
-      console.log(stats.isFile());
+      console.log('File does exist');
       callback(true);  
     }
   });
@@ -116,7 +120,7 @@ exports.downloadUrls = function(urlArray){
 
     http.get(urlArray[i], function (err, res) {
       
-      var url = this.toString();
+      var url = this.url;
 
       if (err) {
         console.error(err);
@@ -126,7 +130,7 @@ exports.downloadUrls = function(urlArray){
 
       //console.log("here is all the data:",res,err);
       //console.log("this",this.toString());
-      console.log(res.buffer.toString());
+     // console.log(res.buffer.toString());
       console.log('got site, saving to', path.join(exports.paths.archivedSites,url));
 
       fs.writeFile(path.join(exports.paths.archivedSites,url), res.buffer.toString(), function(err) {
@@ -136,7 +140,7 @@ exports.downloadUrls = function(urlArray){
         console.log("The file was saved!");
       }); 
 
-    }.bind(urlArray[i]));
+    }.bind({url:urlArray[i]}));
 
   }
 

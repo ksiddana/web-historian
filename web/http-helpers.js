@@ -11,7 +11,11 @@ exports.headers = headers = {
 };
 
 // As you progress, keep thinking about what helper functions you can put here!
-exports.sendResponse = function(response, data, statusCode){
+exports.sendResponse = function(response, data, statusCode, extraHeaders){
+
+  for(var header in extraHeaders){
+    headers[header]=extraHeaders[header];
+  }
 
   response.writeHead(statusCode,headers);
   response.end(JSON.stringify(data));
@@ -42,14 +46,26 @@ exports.serveAssets = function(response, asset, callback) {
 };
 
 exports.saveAssets = function(response, asset, callback) {
-  console.log("Saving Asssest:", JSON.stringify(asset) + "\n", "to: ", archive.paths.archiveList);
+
+  if(!callback){
+    callback = function(){};
+  }
+  
+  console.log("Saving Asssest:", JSON.stringify(asset) + "\n", "to: ", archive.paths.archivedList, archive.paths.test);
+
   fs.appendFile(archive.paths.test, asset.url + "\n", function (err) {
 
-    if (err) {
-      console.log(err);
-    } else {
-      console.log('The "data to append" was appended to file!');
-    }
+    fs.appendFile(archive.paths.archivedList, asset.url + "\n", function (err) {
+
+        if (err) {
+          console.log('oh shit!', archive.paths.archivedList, asset.url + "\n");
+          console.log(err);
+        } else {
+          console.log('The "data to append" was appended to file!');
+        }
+        callback();
+    });
+  
   });
 
 }
