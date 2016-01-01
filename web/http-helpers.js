@@ -1,8 +1,9 @@
 var path = require('path');
 var fs = require('fs');
 var archive = require('../helpers/archive-helpers');
+var _ = require('underscore');
 
-exports.headers = headers = {
+var headers = headers = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
@@ -12,12 +13,13 @@ exports.headers = headers = {
 
 // As you progress, keep thinking about what helper functions you can put here!
 exports.sendResponse = function(response, data, statusCode, extraHeaders){
+  
+  var sentHeaders = {};
 
-  for(var header in extraHeaders){
-    headers[header]=extraHeaders[header];
-  }
+  _.extend(sentHeaders,headers,extraHeaders);
 
-  response.writeHead(statusCode,headers);
+  response.writeHead(statusCode,sentHeaders);
+  console.log('sending with headers',sentHeaders);
   response.end(JSON.stringify(data));
 
 }

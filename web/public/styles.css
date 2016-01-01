@@ -2,3 +2,8 @@ body {
   margin : 0px;
   font-family: arial, sans-serif;
 }
+
+.inputbox{
+  font-size: 50px;
+  width: 100%;
+}

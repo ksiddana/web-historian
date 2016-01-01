@@ -4,17 +4,17 @@ var fs = require('fs');
 var http = require('./http-helpers.js');
 // require more modules/folders here!
 
-exports.handleRequest = function (request, response) {
-  // res.end(archive.paths.index);
-  console.log("Request Method, ", request.method);
-  if (request.url === '/' && request.method === 'GET') {
 
-    http.serveAssets(response, archive.paths.index);
-    // var readStream = fs.createReadStream(archive.paths.index);
-    // We replaced all the event handlers with a simple call to readStream.pipe()
-    
-  }
-  else if ( request.url === '/' && request.method === 'POST') {
+//request handler does not serve stlyes.css or loading.html!!!
+
+
+exports.handleRequest = function (request, response) {
+
+  console.log("Request Method, ", request.method);
+  
+  //handle requests from the index file
+  if ( (request.url === '/' || request.url === '/index.html') && request.method === 'POST') {
+
     console.log("Recieving POST Request");
     var completeData = '';
     
@@ -25,9 +25,16 @@ exports.handleRequest = function (request, response) {
 
     request.on('end', function() {
       
-      completeData = JSON.parse(completeData);
+      //console.log("***********", completeData, request.headers);
 
-      console.log("***********", completeData);
+      if(request.headers['content-type'] === 'application/x-www-form-urlencoded'){
+        var formData = completeData.toString().split("=");
+        console.log('received a form submission!',formData)
+        completeData =  {url:formData[1]};
+      }else{
+        completeData = JSON.parse(completeData);
+      }
+
       
       //TO PASS TESTS, UNCOMMENT
       // http.saveAssets(request, completeData,function(){
@@ -39,14 +46,15 @@ exports.handleRequest = function (request, response) {
       archive.isUrlArchived(completeData.url, function(fileExists) {
           
           if (fileExists) {
-            console.log("URL exists in Archive");
-            http.sendResponse(response,'Redirect', 307,{Location: 'http://127.0.0.1:8080' + completeData.url});
+            console.log("URL exists in Archive. Redirecting to", 'http://127.0.0.1:8080/' + completeData.url);
+            http.sendResponse(response,'Redirect', 307,{Location: 'http://127.0.0.1:8080/' + completeData.url});
           }else{
             console.log('URL does NOT exist in Archive');
 
             http.saveAssets(request, completeData,function(){
               archive.downloadUrls([completeData.url]);
-              http.sendResponse(response,'Saved file url and downloading your requested url', 302);
+              //http.sendResponse(response,'Saved file url and downloading your requested url', 302);
+              http.sendResponse(response,'Redirect', 307,{Location: 'http://127.0.0.1:8080/loading.html'});
 
             });
           }
@@ -56,11 +64,29 @@ exports.handleRequest = function (request, response) {
     });
 
   } else {
+    //handle any other request, to serve a file
+    console.log('dropped through!');
 
-    http.serveAssets(response, path.join(archive.paths.archivedSites, request.url), function(){
-      console.log('not found');
-      http.sendResponse(response,'Not found!',404);
-    }); 
+    //site asset folder
+
+    if(request.url === '/' ){
+      http.serveAssets(response, path.join(archive.paths.index), function(){
+        console.log('not found');
+        http.sendResponse(response,'Not found!',404);
+      });
+    }
+    else if(request.url === '/index.html' || request.url === '/loading.html' || request.url === '/styles.css'){
+      http.serveAssets(response, path.join(archive.paths.siteAssets, request.url), function(){
+        console.log('not found');
+        http.sendResponse(response,'Not found!',404);
+      });
+    }else{
+      //archived sites
+      http.serveAssets(response, path.join(archive.paths.archivedSites, request.url), function(){
+        console.log('not found');
+        http.sendResponse(response,'Not found!',404);
+      }); 
+    }
   }
     console.log(request.url); 
 };
